@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  hello-chart:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2021-05-28T06:30:12.708809787Z"
+    description: A Helm chart for Kubernetes
+    digest: 60c65afb0836a0f7c79d542e6f7745dc1abb2ef2dc9f296b360f6a6a42eb5397
+    name: hello-chart
+    type: application
+    urls:
+    - https://github.com/santiment/chain-charts/releases/download/hello-chart-0.1.0/hello-chart-0.1.0.tgz
+    version: 0.1.0
+generated: "2021-05-28T06:30:12.708819687Z"
