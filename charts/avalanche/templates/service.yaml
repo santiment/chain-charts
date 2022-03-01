@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "avalanche.fullname" . }}
+  labels:
+    app: {{ template "avalanche.name" . }}
+    chart: {{ template "avalanche.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.http.port }}
+      {{- if .Values.proxy.enabled }}
+      targetPort: {{ .Values.proxy.port }}
+      {{- else }}
+      targetPort: {{ .Values.service.http.port }}
+      {{- end }}
+      protocol: TCP
+  selector:
+    app: {{ template "avalanche.name" . }}
+    release: {{ .Release.Name }}

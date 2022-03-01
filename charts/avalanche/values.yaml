@@ -1,0 +1,121 @@
+## Set default image, imageTag, and imagePullPolicy.
+##
+image:
+  repository: avaplatform/avalanchego
+  tag: v1.7.4
+  pullPolicy: IfNotPresent
+
+## Additional arguments to pass to avalanchego
+extraArgs: []
+   # - --api-admin-enabled=true
+   # - --http-host=0.0.0.0
+
+updateStrategy: RollingUpdate
+
+mountPath: "/root/.avalanchego"
+
+replicas: 1
+
+persistence:
+  storageClass: ""
+  VolumeName: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+service:
+  type: ClusterIP
+  http:
+    port: "9650"
+  staking:
+    port: "9651"
+
+  annotations: {}
+    # prometheus.io/scrape: 'true'
+    # prometheus.io/path:   '/ext/metrics'
+    # prometheus.io/port:   '9650'
+
+## Configure sidecarContainers based on the documentation here: https://kubernetes.io/docs/concepts/workloads/pods/
+##
+
+sidecarContainers: {}
+
+## Enable proxy
+##
+
+proxy:
+  enabled: false
+  port: 8080
+  image: "nginx:1.20.2"
+  pullPolicy: IfNotPresent
+  resources: {}
+  logFormat: []
+    #- '"$remote_addr" - "$remote_user" [$time_iso8601] "$request" '
+    #- '"$status" "$body_bytes_sent" "$http_referer" '
+    #- '"$http_user_agent" '
+    #- 'rt="$request_time" urt="$upstream_response_time" '
+  serverConfig: []
+    #-  proxy_read_timeout 3600;
+    #-  client_body_in_single_buffer on;
+    #-  client_body_buffer_size 16k;
+    #-  proxy_buffers 16 16k;
+    #-  proxy_buffer_size 16k;
+
+
+## Configure Ingress based on the documentation here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+##
+
+ingress:
+  enabled: false
+  labels: {}
+    # node-role.kubernetes.io/ingress: platform
+
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    # kubernetes.io/ingress.allow-http: "false"
+    # kubernetes.io/ingress.global-static-ip-name: ""
+    # nginx.ingress.kubernetes.io/secure-backends: "true"
+    # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # nginx.ingress.kubernetes.io/whitelist-source-range: 0.0.0.0/0
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+## Node labels for pod assignment
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+##
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Additational pod annotations
+podAnnotations: {}
+
+# Additional pod labels
+podLabels: {}
+
+## Configure resource requests and limits
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+resources:
+  requests:
+    memory: 16Gi
+    cpu: 8
+
+# Environment
+environment:
+
+serviceAccount:
+  create: true
+  ## The name of the service account to use. If 'create' is 'true', a service account with that name
+  ## will be created. Otherwise, a name will be auto-generated.
+  name:
+
+## Pod priority settings
+## ref: https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/
+##
+priorityClassName: ""

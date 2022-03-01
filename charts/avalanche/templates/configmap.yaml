@@ -1,0 +1,14 @@
+{{- if .Values.proxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "avalanche.proxyname" . }}
+  labels:
+    app: {{ template "avalanche.name" . }}
+    chart: {{ template "avalanche.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  nginx.conf: |
+{{ include (print $.Template.BasePath "/_helper_nginx.conf") . | indent 4 }}
+{{- end }}
