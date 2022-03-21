@@ -71,7 +71,7 @@ spec:
             "--http-port={{ .Values.service.http.port }}",
             {{- end }}
             {{- if ne .Values.service.staking.port "9651" }}
-            "--staking-port={{ .Values.service.staking.port}} ",
+            "--staking-port={{ .Values.service.staking.port}}",
             {{- end }}
             {{- range $key, $value := .Values.extraArgs }}
             {{- if $value }}
