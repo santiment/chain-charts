@@ -6,9 +6,9 @@ image:
   pullPolicy: IfNotPresent
 
 ## Additional arguments to pass to avalanchego
-extraArgs: []
-   # - --api-admin-enabled=true
-   # - --http-host=0.0.0.0
+extraArgs: {}
+#   --api-admin-enabled: true
+#   --http-host: 0.0.0.0
 
 updateStrategy: RollingUpdate
 
