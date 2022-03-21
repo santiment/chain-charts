@@ -53,16 +53,6 @@ Return the appropriate apiVersion for ingress.
 {{- end -}}
 {{- end -}}
 
-
-{{/*
-Properly format optional additional arguments to avalanchego
-*/}}
-{{- define "avalanche.extraArgs" -}}
-{{- range .Values.extraArgs -}}
-{{ " " }}{{ . }}
-{{- end -}}
-{{- end -}}
-
 {{/*
 Determine service account name for statefulset.
 */}}

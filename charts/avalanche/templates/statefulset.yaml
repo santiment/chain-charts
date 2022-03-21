@@ -55,7 +55,7 @@ spec:
               scheme: HTTP
               path: /nginx_status
               port: {{ .Values.proxy.port }}
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120
             timeoutSeconds: 30
           volumeMounts:
             - name: {{ template "avalanche.proxyname" . }}
@@ -67,22 +67,30 @@ spec:
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: [ "/avalanchego/build/avalanchego",
-            "--db-dir={{ .Values.mountPath }} ",
             {{- if ne .Values.service.http.port "9650" }}
-            "--http-port={{ .Values.service.http.port }} ",
+            "--http-port={{ .Values.service.http.port }}",
             {{- end }}
             {{- if ne .Values.service.staking.port "9651" }}
-            "--staking-port={{ .Values.service.staking.port }}",
+            "--staking-port={{ .Values.service.staking.port}} ",
             {{- end }}
-            "{{- template `avalanche.extraArgs` . }}" ]
+            {{- range $key, $value := .Values.extraArgs }}
+            {{- if $value }}
+            "{{ $key }}={{ $value }}",
+            {{- else }}
+            "{{ $key }}",
+            {{- end }}
+            {{- end }}
+            "--db-dir={{ .Values.mountPath }}"]
           volumeMounts:
             - name: data
               mountPath: {{ .Values.mountPath }}
           ports:
-            - name: http
-              containerPort: {{ .Values.service.http.port }}
-            - name: staking
-              containerPort: {{ .Values.service.staking.port }}
+          - containerPort: {{ .Values.service.http.port }}
+            name: http
+            protocol: TCP
+          - containerPort: {{ .Values.service.staking.port }}
+            name: staking
+            protocol: TCP
           env:
             {{- range $key, $val := .Values.environment }}
             - name: {{ $key }}
@@ -93,9 +101,9 @@ spec:
           livenessProbe:
             httpGet:
               scheme: HTTP
-              path: /ext/health
+              path: /ext/health/liveness
               port: {{ .Values.service.http.port }}
-            initialDelaySeconds: 30
+            initialDelaySeconds: 120
             timeoutSeconds: 30
     {{- if .Values.proxy.enabled }}
       volumes:
