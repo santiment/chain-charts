@@ -1,9 +1,6 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "avalanche.fullname" . -}}
 {{- $servicePort := .Values.service.http.port -}}
-{{- if .Values.proxy.enabled }}
-{{- $servicePort := .Values.proxy.port -}}
-{{ end }}
 {{- $ingressPath := .Values.ingress.path -}}
 apiVersion: {{ template "avalanche.ingress.apiVersion" . }}
 kind: Ingress

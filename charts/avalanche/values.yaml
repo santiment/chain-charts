@@ -44,7 +44,7 @@ sidecarContainers: {}
 
 proxy:
   enabled: false
-  port: 8080
+  port: "8080"
   image: "nginx:1.20.2"
   pullPolicy: IfNotPresent
   resources: {}
