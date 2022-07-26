@@ -1,0 +1,82 @@
+apiVersion: {{ template "optimism.statefulset.apiVersion" . }}
+kind: StatefulSet
+metadata:
+  name: {{ template "optimism.dtlname" . }}
+  labels:
+    app: {{ template "optimism.dtlname" . }}
+    chart: {{ template "optimism.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  updateStrategy:
+    type: {{ .Values.updateStrategy }}
+  podManagementPolicy: "Parallel"
+  serviceName: {{ template "optimism.dtlfullname" . }}
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ template "optimism.dtlname" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      name: {{ template "optimism.dtlfullname" . }}
+      labels:
+        app: {{ template "optimism.dtlname" . }}
+        release: {{ .Release.Name }}
+{{- if .Values.dtl.podLabels }}
+{{ toYaml .Values.dtl.podLabels | indent 8 }}
+{{- end }}
+{{- if .Values.dtl.podAnnotations }}
+      annotations:
+{{ toYaml .Values.dtl.podAnnotations | trimSuffix "\n" | indent 8 }}
+{{- end }}
+    spec:
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      serviceAccountName: {{ include "optimism.serviceAccountName" . | quote }}
+      containers:
+        - name: {{ .Chart.Name }}-dtl
+          image: {{ .Values.dtl.image.repository }}:{{ .Values.dtl.image.tag }}
+          imagePullPolicy: {{ .Values.dtl.image.pullPolicy }}
+          volumeMounts:
+            - name: {{ template "optimism.dtlvolumename" . }}
+              mountPath: {{ .Values.dtl.mountPath }}
+          ports:
+          - containerPort: {{ .Values.dtl.service.dtl.port }}
+            name: dtl
+            protocol: TCP
+          env:
+            {{- range $key, $val := .Values.dtl.environment }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end}}
+            - name: DATA_TRANSPORT_LAYER__DB_PATH
+              value: {{ .Values.dtl.mountPath }}
+            - name: DATA_TRANSPORT_LAYER__SERVER_PORT
+              value: "{{ .Values.dtl.service.dtl.port }}"
+          resources:
+{{ toYaml .Values.dtl.resources | indent 12 }}
+    {{- with .Values.dtl.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.dtl.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.dtl.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ template "optimism.dtlvolumename" . }}
+      spec:
+        accessModes: [ {{ $.Values.dtl.persistence.accessMode | quote }} ]
+        {{- if $.Values.dtl.persistence.storageClass }}
+        storageClassName: {{ $.Values.dtl.persistence.storageClass }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $.Values.dtl.persistence.size }}
