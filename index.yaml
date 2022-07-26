@@ -50,4 +50,22 @@ entries:
     urls:
     - https://github.com/santiment/chain-charts/releases/download/hello-chart-0.1.0/hello-chart-0.1.0.tgz
     version: 0.1.0
-generated: "2022-03-21T18:20:57.017016502Z"
+  optimism:
+  - apiVersion: v1
+    appVersion: master
+    created: "2022-07-26T06:23:02.97355797Z"
+    description: Helm chart for optimism node
+    digest: ddbf3f83e50fc1b93abd1afc4c374abce9c0652ca513098a2e308a1d86bbecf7
+    home: https://www.optimism.io/
+    keywords:
+    - Optimism
+    - Ethereum L2 blockchain
+    maintainers:
+    - name: Ivan Genev
+    name: optimism
+    sources:
+    - https://github.com/ethereum-optimism/optimism
+    urls:
+    - https://github.com/santiment/chain-charts/releases/download/optimism-0.0.1/optimism-0.0.1.tgz
+    version: 0.0.1
+generated: "2022-07-26T06:23:02.97356847Z"
