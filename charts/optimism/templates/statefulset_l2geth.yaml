@@ -1,0 +1,152 @@
+apiVersion: {{ template "optimism.statefulset.apiVersion" . }}
+kind: StatefulSet
+metadata:
+  name: {{ template "optimism.name" . }}
+  labels:
+    app: {{ template "optimism.name" . }}
+    chart: {{ template "optimism.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  updateStrategy:
+    type: {{ .Values.updateStrategy }}
+  podManagementPolicy: "Parallel"
+  serviceName: {{ template "optimism.fullname" . }}
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ template "optimism.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      name: {{ template "optimism.fullname" . }}
+      labels:
+        app: {{ template "optimism.name" . }}
+        release: {{ .Release.Name }}
+        {{- if .Values.l2geth.podLabels }}
+{{ toYaml .Values.l2geth.podLabels | indent 8 }}
+        {{- end }}
+      {{- if .Values.l2geth.podAnnotations }}
+      annotations:
+{{ toYaml .Values.l2geth.podAnnotations | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      serviceAccountName: {{ include "optimism.serviceAccountName" . | quote }}
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: {{ .Values.l2geth.image.repository }}:{{ .Values.l2geth.image.tag }}
+          imagePullPolicy: {{ .Values.l2geth.image.pullPolicy }}
+          volumeMounts:
+            - name: {{ template "optimism.volumename" . }}
+              mountPath: {{ .Values.l2geth.mountPath }}
+            - name: {{ template "optimism.fullname" . }}
+              mountPath: /root/init.sh
+              subPath: init.sh
+          command: ['sh', '-c', "/root/init.sh"]
+          env:
+            {{- range $key, $val := .Values.l2geth.environment }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end}}
+            - name: DATADIR
+              value: {{ .Values.l2geth.mountPath }}
+      containers:
+        {{- if .Values.sidecarContainers }}
+        {{- toYaml .Values.sidecarContainers | nindent 8 }}
+        {{- end }}
+        {{- if .Values.proxy.enabled }}
+        - name: {{ template "optimism.proxyname" . }}
+          image: {{ .Values.proxy.image }}
+          imagePullPolicy: {{ .Values.proxy.pullPolicy }}
+          ports:
+            - name: proxy
+              containerPort: {{ .Values.proxy.port }}
+          {{- if .Values.proxy.resources }}
+          resources:
+          {{- toYaml .Values.proxy.resources | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /nginx_status
+              port: {{ .Values.proxy.port }}
+            initialDelaySeconds: 120
+            timeoutSeconds: 30
+          volumeMounts:
+            - name: {{ template "optimism.proxyname" . }}
+              mountPath: /etc/nginx/conf.d/default.conf
+              readOnly: true
+              subPath: nginx.conf
+        {{- end }}
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.l2geth.image.repository }}:{{ .Values.l2geth.image.tag }}
+          imagePullPolicy: {{ .Values.l2geth.image.pullPolicy }}
+          command: [ "geth",
+            {{- range $key, $value := .Values.l2geth.extraArgs }}
+            {{- if $value }}
+            "{{ $key }}={{ $value }}",
+            {{- else }}
+            "{{ $key }}",
+            {{- end }}
+            {{- end }}
+            "--datadir={{ .Values.l2geth.mountPath }}",
+            "--config=/root/l2geth.toml",
+            "--password={{ .Values.l2geth.mountPath }}/password"]
+          volumeMounts:
+            - name: {{ template "optimism.volumename" . }}
+              mountPath: {{ .Values.l2geth.mountPath }}
+            - name: {{ template "optimism.fullname" . }}
+              mountPath: /root/l2geth.toml
+              readOnly: true
+              subPath: l2geth.toml
+          ports:
+          - containerPort: {{ .Values.l2geth.service.rpc.port }}
+            name: rpc
+            protocol: TCP
+          env:
+            {{- range $key, $val := .Values.l2geth.environment }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end}}
+            - name: DATADIR
+              value: {{ .Values.l2geth.mountPath }}
+            - name: ROLLUP_CLIENT_HTTP
+              value: {{ template "optimism.dtlservice" . }}
+          resources:
+{{ toYaml .Values.l2geth.resources | indent 12 }}
+    {{- with .Values.l2geth.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.l2geth.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.l2geth.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+      volumes:
+        - name: {{ template "optimism.fullname" . }}
+          configMap:
+            name: {{ template "optimism.fullname" . }}
+            defaultMode: 0777
+    {{- if .Values.proxy.enabled }}
+        - name: {{ template "optimism.proxyname" . }}
+          configMap:
+            name: {{ template "optimism.proxyname" . }}
+    {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ template "optimism.volumename" . }}
+      spec:
+        accessModes: [ {{ $.Values.l2geth.persistence.accessMode | quote }} ]
+        {{- if $.Values.l2geth.persistence.storageClass }}
+        storageClassName: {{ $.Values.l2geth.persistence.storageClass }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $.Values.l2geth.persistence.size }}

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "optimism.fullname" . }}
+  labels:
+    app: {{ template "optimism.name" . }}
+    chart: {{ template "optimism.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.l2geth.service.annotations }}
+  annotations:
+{{ toYaml .Values.l2geth.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.l2geth.service.type }}
+  ports:
+    - name: l2geth
+      port: {{ .Values.l2geth.service.rpc.port }}
+      {{- if .Values.proxy.enabled }}
+      targetPort: {{ .Values.proxy.port }}
+      {{- else }}
+      targetPort: {{ .Values.l2geth.service.rpc.port }}
+      {{- end }}
+      protocol: TCP
+  selector:
+    app: {{ template "optimism.name" . }}
+    release: {{ .Release.Name }}

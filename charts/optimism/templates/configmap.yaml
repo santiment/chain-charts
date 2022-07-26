@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "optimism.fullname" . }}
+  labels:
+    app: {{ template "optimism.name" . }}
+    chart: {{ template "optimism.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  init.sh: |
+{{ include (print $.Template.BasePath "/_helper_l2geth_init.sh") . | indent 4 }}
+  l2geth.toml: |
+{{ include (print $.Template.BasePath "/_helper_l2geth.toml") . | indent 4 }}
+
+---
+{{- if .Values.proxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "optimism.proxyname" . }}
+  labels:
+    app: {{ template "optimism.name" . }}
+    chart: {{ template "optimism.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  nginx.conf: |
+{{ include (print $.Template.BasePath "/_helper_nginx.conf") . | indent 4 }}
+{{- end }}

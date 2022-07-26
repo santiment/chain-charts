@@ -1,0 +1,13 @@
+apiVersion: v1
+description: Helm chart for optimism node
+name: optimism
+version: 0.0.1
+appVersion: master
+keywords:
+- Optimism
+- Ethereum L2 blockchain
+home: https://www.optimism.io/
+sources:
+- https://github.com/ethereum-optimism/optimism
+maintainers:
+  - name: Ivan Genev

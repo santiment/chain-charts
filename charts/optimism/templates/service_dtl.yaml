@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "optimism.dtlfullname" . }}
+  labels:
+    app: {{ template "optimism.dtlname" . }}
+    chart: {{ template "optimism.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- if .Values.dtl.service.annotations }}
+  annotations:
+{{ toYaml .Values.dtl.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.dtl.service.type }}
+  ports:
+    - name: dtl
+      port: {{ .Values.dtl.service.dtl.port }}
+      targetPort: {{ .Values.dtl.service.dtl.port }}
+      protocol: TCP
+  selector:
+    app: {{ template "optimism.dtlname" . }}
+    release: {{ .Release.Name }}
