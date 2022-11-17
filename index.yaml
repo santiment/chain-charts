@@ -39,6 +39,33 @@ entries:
     urls:
     - https://github.com/santiment/chain-charts/releases/download/avalanche-0.0.1/avalanche-0.0.1.tgz
     version: 0.0.1
+  bitcoind:
+  - apiVersion: v1
+    appVersion: 0.15.1
+    created: "2022-11-17T12:57:11.361358787Z"
+    description: Bitcoin is an innovative payment network and a new kind of money.
+    digest: a2f387cc8728aae69dc0c3eb8336f3a7fce01d8435cd00bf3418976fa0654016
+    home: https://bitcoin.org/
+    icon: https://bitcoin.org/img/icons/logotop.svg
+    keywords:
+    - bitcoind
+    - cryptocurrency
+    - blockchain
+    maintainers:
+    - email: daniel@arilot.com
+      name: daniel-yavorovich
+    - email: shiyanval@gmail.com
+      name: govale
+    - email: valentin.m@santiment.net
+      name: Valentin Mihov
+    name: bitcoind
+    sources:
+    - https://github.com/kubernetes/charts
+    - https://github.com/kuberstack/bitcoind
+    - https://github.com/kylemanna/docker-bitcoind
+    urls:
+    - https://github.com/santiment/chain-charts/releases/download/bitcoind-0.1.4/bitcoind-0.1.4.tgz
+    version: 0.1.4
   hello-chart:
   - apiVersion: v2
     appVersion: 1.16.0
@@ -68,4 +95,4 @@ entries:
     urls:
     - https://github.com/santiment/chain-charts/releases/download/optimism-0.0.1/optimism-0.0.1.tgz
     version: 0.0.1
-generated: "2022-07-26T06:23:02.97356847Z"
+generated: "2022-11-17T12:57:11.361366387Z"
