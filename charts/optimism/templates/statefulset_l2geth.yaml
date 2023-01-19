@@ -94,7 +94,17 @@ spec:
             {{- end }}
             "--datadir={{ .Values.l2geth.mountPath }}",
             "--config=/root/l2geth.toml",
-            "--password={{ .Values.l2geth.mountPath }}/password"]
+            "--password={{ .Values.l2geth.mountPath }}/password",
+            {{- if .Values.l2geth.metrics.enabled }}
+            "--metrics",
+            "--pprof",
+            "--pprofaddr=0.0.0.0",
+            "--pprofport={{ .Values.l2geth.metrics.port }}",
+            {{- if .Values.l2geth.metrics.expensive }}
+            "--metrics.expensive"
+            {{- end }}
+            {{- end }}
+          ]
           volumeMounts:
             - name: {{ template "optimism.volumename" . }}
               mountPath: {{ .Values.l2geth.mountPath }}
@@ -106,6 +116,11 @@ spec:
           - containerPort: {{ .Values.l2geth.service.rpc.port }}
             name: rpc
             protocol: TCP
+          {{- if .Values.l2geth.metrics.enabled }}
+          - containerPort: 6060
+            name: metrics-port
+            protocol: TCP
+          {{- end }}
           env:
             {{- range $key, $val := .Values.l2geth.environment }}
             - name: {{ $key }}
