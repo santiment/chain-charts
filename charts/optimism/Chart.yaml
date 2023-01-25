@@ -1,7 +1,7 @@
 apiVersion: v1
 description: Helm chart for optimism node
 name: optimism
-version: 0.0.1
+version: 0.0.2
 appVersion: master
 keywords:
 - Optimism

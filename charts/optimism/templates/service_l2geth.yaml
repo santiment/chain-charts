@@ -22,6 +22,12 @@ spec:
       targetPort: {{ .Values.l2geth.service.rpc.port }}
       {{- end }}
       protocol: TCP
+    {{- if .Values.l2geth.metrics.enabled }}
+    - name: metrics
+      port: {{.Values.l2geth.metrics.port }}
+      targetPort: {{ .Values.l2geth.metrics.port }}
+      protocol: TCP
+    {{- end }}
   selector:
     app: {{ template "optimism.name" . }}
     release: {{ .Release.Name }}

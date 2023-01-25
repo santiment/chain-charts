@@ -126,6 +126,10 @@ l2geth:
     rpc:
       port: "8545"
     annotations: {}
+  metrics:
+    enabled: false
+    port: 6060
+    expensive: false
 
   ## Node labels for pod assignment
   ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
