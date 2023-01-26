@@ -32,6 +32,26 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
+Common labels
+*/}}
+{{- define "avalanche.labels" -}}
+helm.sh/chart: {{ include "avalanche.chart" . }}
+{{ include "avalanche.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end }}
+
+{{/*
+Selector labels
+*/}}
+{{- define "avalanche.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "avalanche.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Return the appropriate apiVersion for statefulset.
 */}}
 {{- define "avalanche.statefulset.apiVersion" -}}
