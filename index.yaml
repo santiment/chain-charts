@@ -3,6 +3,25 @@ entries:
   avalanche:
   - apiVersion: v1
     appVersion: master
+    created: "2023-01-26T10:44:10.137811569Z"
+    description: Helm chart for avalanche node
+    digest: 72f7779894f85c1cdd82b632502a81bb27745f7882c455c0b78f636b501b2de8
+    home: https://www.avax.network
+    keywords:
+    - Avalanche
+    - validator
+    - blockchain
+    - AVAX
+    maintainers:
+    - name: Ivan Genev
+    name: avalanche
+    sources:
+    - https://github.com/ava-labs/avalanchego
+    urls:
+    - https://github.com/santiment/chain-charts/releases/download/avalanche-0.0.3/avalanche-0.0.3.tgz
+    version: 0.0.3
+  - apiVersion: v1
+    appVersion: master
     created: "2022-03-21T18:20:57.017006902Z"
     description: Helm chart for avalanche node
     digest: 88dbccc2ca6c2b536a57a8019de497227adc8d6a7cf31258af450a25cc13acd3
@@ -112,4 +131,4 @@ entries:
     urls:
     - https://github.com/santiment/chain-charts/releases/download/optimism-0.0.1/optimism-0.0.1.tgz
     version: 0.0.1
-generated: "2023-01-25T08:15:31.530847228Z"
+generated: "2023-01-26T10:44:10.137827469Z"
