@@ -24,12 +24,12 @@ spec:
       initContainers:
         - name: copy-bitcoind-config
           image: busybox
-          command: ['sh', '-c', "cp /configmap/bitcoin.conf {{ .Values.path }}/.bitcoin/bitcoin.conf"]
+          command: ['sh', '-c', "cp /configmap/{{ .Values.configurationFilename}} {{ .Values.path }}/{{ .Values.subPath}}/{{ .Values.configurationFilename}}"]
           volumeMounts:
             - name: configmap
               mountPath: /configmap
             - name: config
-              mountPath: "{{ .Values.path }}/.bitcoin/"
+              mountPath: "{{ .Values.path }}/{{ .Values.subPath }}/"
       {{- end }}
       containers:
         - name: {{ template "bitcoind.fullname" . }}
@@ -52,11 +52,11 @@ spec:
               containerPort: {{ .Values.service.testnetP2pPort }}
           volumeMounts:
             - name: data
-              mountPath: {{ .Values.dataPath }}
+              mountPath: {{ .Values.path }}
             {{- if .Values.configurationFile }}
             - name: config
-              mountPath: "{{ .Values.path }}/.bitcoin/bitcoin.conf"
-              subPath: bitcoin.conf
+              mountPath: "{{ .Values.path }}/{{ .Values.subPath }}/{{ .Values.configurationFilename }}"
+              subPath: {{ .Values.configurationFilename }}
             {{- end }}
       volumes:
         {{- if .Values.configurationFile }}
