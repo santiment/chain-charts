@@ -40,7 +40,8 @@ resources: {}
 #   value: SOME_VALUE
 
 path: /home/bitcoin
-dataPath: /data
+subPath: .bitcoin
+configurationFilename: bitcoin.conf
 
 # Custom bitcoind configuration file used to override default bitcoind settings
 configurationFile:
