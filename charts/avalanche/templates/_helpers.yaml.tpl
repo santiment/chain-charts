@@ -89,6 +89,6 @@ Determine proxy name for statefulset.
 */}}
 {{- define "avalanche.proxyname" -}}
 {{- if .Values.proxy.enabled -}}
-{{- printf "%s-%s" .Chart.Name "proxy" | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" (include "avalanche.fullname" .) "proxy" | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
