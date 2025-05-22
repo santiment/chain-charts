@@ -1,0 +1,146 @@
+apiVersion: {{ template "simple-node.statefulset.apiVersion" . }}
+kind: StatefulSet
+metadata:
+  name: {{ template "simple-node.fullname" . }}
+  labels:
+    {{- include "simple-node.labels" . | nindent 4 }}
+spec:
+  updateStrategy:
+    type: {{ .Values.updateStrategy }}
+  podManagementPolicy: "Parallel"
+  serviceName: {{ template "simple-node.fullname" . }}
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      {{- include "simple-node.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      name: {{ template "simple-node.fullname" . }}
+      labels:
+        {{- include "simple-node.labels" . | nindent 8 }}
+{{- if .Values.podLabels }}
+{{ toYaml .Values.podLabels | indent 8 }}
+{{- end }}
+{{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | trimSuffix "\n" | indent 8 }}
+{{- end }}
+    spec:
+      {{- if .Values.priorityClassName }}
+      priorityClassName: "{{ .Values.priorityClassName }}"
+      {{- end }}
+      serviceAccountName: {{ include "simple-node.serviceAccountName" . | quote }}
+      {{- if .Values.podSecurityContext }}
+      securityContext: 
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- end }}
+      {{- if and .Values.config.enabled (eq .Values.config.mode "copy") }}
+      initContainers:
+        - name: copy-config
+          image: busybox
+          command: ["sh", "-c", "cp {{ .Values.config.mountPath }} {{ .Values.config.targetPath }}"]
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath | default "/data" }}
+            {{- end }}
+            - name: config
+              mountPath: {{ .Values.config.mountPath | default "/tmp/bitcoin.conf" }}
+              subPath: config
+              readOnly: true
+      {{- end }}
+      containers:
+        {{- if .Values.sidecarContainers }}
+        {{- toYaml .Values.sidecarContainers | nindent 8 }}
+        {{- end }}
+        - name: {{ include "simple-node.app" . }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.command }}
+          command:
+            {{- toYaml .Values.command | nindent 12 }}
+          {{- end }}
+          {{- if .Values.args }}
+          args:
+            {{- toYaml .Values.args | nindent 12 }}
+          {{- end }}
+          {{- if .Values.environment }}
+          env:
+            {{- range $key, $val := .Values.environment }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.containerSecurityContext }}
+          securityContext: 
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          {{- end }}
+          ports:
+          {{- range .Values.service.ports }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort | default .port }}
+              protocol: {{ .protocol | default "TCP" }}
+          {{- end }}
+          {{- with .Values.probes.livenessProbe }}
+          livenessProbe:
+{{ toYaml . | indent 12 }}
+          {{- end }}
+
+          {{- with .Values.probes.readinessProbe }}
+          readinessProbe:
+{{ toYaml . | indent 12 }}
+          {{- end }}
+
+          {{- with .Values.probes.startupProbe }}
+          startupProbe:
+{{ toYaml . | indent 12 }}
+          {{- end }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          {{- if or .Values.persistence.enabled .Values.config.enabled }}
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath | default "/data" }}
+            {{- end }}
+            {{- if and .Values.config.enabled (eq .Values.config.mode "mount") }}
+            - name: config
+              mountPath: {{ .Values.config.mountPath }}
+              subPath: config
+              readOnly: true
+            {{- end }}            
+          {{- end }}
+    {{- if .Values.config.enabled }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ template "simple-node.confname" . }}
+            defaultMode: 0600
+    {{- end }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        {{- if $.Values.persistence.VolumeName }}
+        name: {{ $.Values.persistence.VolumeName }}
+        {{- else }}
+        name: data
+        {{- end}}
+      spec:
+        accessModes: [ {{ $.Values.persistence.accessMode | quote }} ]
+        {{- if $.Values.persistence.storageClass }}
+        storageClassName: {{ $.Values.persistence.storageClass }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $.Values.persistence.size }}

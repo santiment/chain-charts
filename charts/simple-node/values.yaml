@@ -1,0 +1,97 @@
+# Image settings
+image:
+  repository: hello-world
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Application override name (used for labels, naming)
+appNameOverride: "simple-node"
+
+# Additional pod customizations
+podAnnotations: {}
+podLabels: {}
+
+# Update strategy for StatefulSet
+updateStrategy: RollingUpdate
+
+# Number of pod replicas
+replicas: 1
+
+# Command and args for container override
+command: []
+args: []
+
+# Environment variables for container
+environment: {}
+
+# ConfigMap related configuration
+config:
+  enabled: false
+  mode: "copy" # or "mount"
+  mountPath: /tmp/simple-node.conf
+  targetPath: /root/simple-node.conf
+  data: |-
+    server=1
+    printtoconsole=1
+    rpcallowip=0.0.0.0/0
+    rpcbind=0.0.0.0
+    rpcserialversion=0
+
+probes:
+  livenessProbe: {}
+  readinessProbe: {}
+  startupProbe: {}
+
+# Resource requests and limits
+resources:
+  requests:
+    memory: 4Gi
+    cpu: 2
+
+# Persistence configuration
+persistence:
+  enabled: false
+  mountPath: "/data"
+  storageClass: ""
+  VolumeName: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+
+# Service configuration and ports
+service:
+  type: ClusterIP
+  ports:
+    - name: rpc
+      port: 8332
+      targetPort: 8332
+
+# Sidecar containers (empty by default)
+sidecarContainers: {}
+
+# Kubernetes scheduling settings
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  ingressClassName: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/tls-acme: 'true'
+  host: simple-node.example.org
+  path: /
+  pathType: Prefix
+  tls: true
+  tlsSecretName: simple-node-tls
+
+# Service Account configuration
+serviceAccount:
+  create: false
+  # The name of the service account to use. If 'create' is 'true', a service account with that name
+  # will be created. Otherwise, a name will be auto-generated.
+  name: ""
+
+# Pod priority class
+priorityClassName: ""
