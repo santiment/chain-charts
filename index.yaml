@@ -176,4 +176,21 @@ entries:
     urls:
     - https://github.com/santiment/chain-charts/releases/download/optimism-0.0.1/optimism-0.0.1.tgz
     version: 0.0.1
-generated: "2024-02-07T13:16:27.984931416Z"
+  simple-node:
+  - apiVersion: v1
+    appVersion: master
+    created: "2025-05-22T12:41:13.749831216Z"
+    description: Helm chart for simple node
+    digest: efb3b27e10acb814b266b07a1deeee4f7a7154f3963756985a6deb24f8be1694
+    keywords:
+    - Bitcoin
+    - Litecoin
+    - Dogecoin
+    - blockchain
+    maintainers:
+    - name: Ivan Genev
+    name: simple-node
+    urls:
+    - https://github.com/santiment/chain-charts/releases/download/simple-node-0.0.1/simple-node-0.0.1.tgz
+    version: 0.0.1
+generated: "2025-05-22T12:41:13.749854631Z"
