@@ -1,0 +1,40 @@
+1. Get the application name:
+  {{ include "simple-node.fullname" . }}
+
+2. Access the node using one of the following methods:
+
+{{- if .Values.ingress.enabled }}
+  Ingress is enabled. Access the app via:
+
+  http{{ if .Values.ingress.tls }}s{{ end }}://{{ .Values.ingress.host }}{{ .Values.ingress.path }}
+
+{{- else if eq .Values.service.type "NodePort" }}
+  NodePort service:
+
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "simple-node.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo "Access your app at: http://$NODE_IP:$NODE_PORT"
+
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  LoadBalancer service:
+
+  NOTE: It may take a few minutes for the LoadBalancer IP to become available.
+  Watch with:
+
+    kubectl get svc --namespace {{ .Release.Namespace }} -w {{ include "simple-node.fullname" . }}
+
+  Then access it via:
+
+    http://<EXTERNAL-IP>:{{ (index .Values.service.ports 0).port }}
+
+{{- else if eq .Values.service.type "ClusterIP" }}
+  ClusterIP service:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "simple-node.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8332:{{ (index .Values.service.ports 0).targetPort }}
+
+  Then access it locally:
+
+    http://127.0.0.1:8332
+{{- end }}

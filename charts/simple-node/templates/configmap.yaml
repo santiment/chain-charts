@@ -1,0 +1,11 @@
+{{- if .Values.config.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "simple-node.confname" . }}
+  labels:
+    {{- include "simple-node.labels" . | nindent 4 }}
+data:
+  config: |-
+{{ .Values.config.data | indent 4 }}
+{{- end }}
