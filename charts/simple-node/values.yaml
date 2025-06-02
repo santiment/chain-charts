@@ -65,6 +65,9 @@ service:
       port: 8332
       targetPort: 8332
 
+# Container ports configuration 
+containerPorts: {}
+
 # Sidecar containers (empty by default)
 sidecarContainers: {}
 

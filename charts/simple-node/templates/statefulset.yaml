@@ -81,11 +81,13 @@ spec:
               containerPort: {{ .targetPort | default .port }}
               protocol: {{ .protocol | default "TCP" }}
           {{- end }}
+          {{- if .Values.containerPorts }}
+            {{- toYaml .Values.containerPorts | nindent 12 }}
+          {{- end }}
           {{- with .Values.probes.livenessProbe }}
           livenessProbe:
 {{ toYaml . | indent 12 }}
           {{- end }}
-
           {{- with .Values.probes.readinessProbe }}
           readinessProbe:
 {{ toYaml . | indent 12 }}
