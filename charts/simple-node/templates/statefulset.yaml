@@ -102,7 +102,7 @@ spec:
           {{- if or .Values.persistence.enabled .Values.config.enabled }}
           volumeMounts:
             {{- if .Values.persistence.enabled }}
-            - name: data
+            - name: {{ .Values.persistence.VolumeName | default "data" }}
               mountPath: {{ .Values.persistence.mountPath | default "/data" }}
             {{- end }}
             {{- if and .Values.config.enabled (eq .Values.config.mode "mount") }}
@@ -131,13 +131,10 @@ spec:
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
+  {{- if .Values.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:
-        {{- if $.Values.persistence.VolumeName }}
-        name: {{ $.Values.persistence.VolumeName }}
-        {{- else }}
-        name: data
-        {{- end}}
+        name: {{ .Values.persistence.VolumeName | default "data" }}
       spec:
         accessModes: [ {{ $.Values.persistence.accessMode | quote }} ]
         {{- if $.Values.persistence.storageClass }}
@@ -146,3 +143,4 @@ spec:
         resources:
           requests:
             storage: {{ $.Values.persistence.size }}
+  {{- end }} 
