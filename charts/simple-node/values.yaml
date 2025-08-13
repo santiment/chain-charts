@@ -51,11 +51,26 @@ resources:
 # Persistence configuration
 persistence:
   enabled: false
-  mountPath: "/data"
-  storageClass: ""
-  VolumeName: ""
-  accessMode: ReadWriteOnce
+
+  ## --- New multi-volume syntax (preferred) ---
+  ## Define one or more volumes here. Each volume can:
+  ## - create a new PVC by specifying `size` (and optional storageClass, accessMode)
+  ## - use an existing PVC by specifying `existingClaim`
+  ## - use an emptyDir by specifying `emptyDir: {}`
+  volumes:
+    - name: data
+      mountPath: /data
+      storageClass: ""
+      accessMode: ReadWriteOnce
+      size: 10Gi
+
+  ## --- Legacy single-volume syntax (for backward compatibility) ---
+  ## Used only if `persistence.volumes` is empty
+  VolumeName: data
+  mountPath: /data
   size: 10Gi
+  accessMode: ReadWriteOnce
+  storageClass: ""
 
 # Service configuration and ports
 service:
@@ -65,7 +80,7 @@ service:
       port: 8332
       targetPort: 8332
 
-# Container ports configuration 
+# Container ports configuration
 containerPorts: {}
 
 # Sidecar containers (empty by default)

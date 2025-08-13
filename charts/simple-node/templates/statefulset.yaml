@@ -1,3 +1,16 @@
+{{- /* Support both: new persistence.volumes[] and legacy flat keys */ -}}
+{{- $pvols := .Values.persistence.volumes | default (list) -}}
+{{- if and .Values.persistence.enabled (empty $pvols) -}}
+  {{- $legacy := dict
+        "name"         (default "data" .Values.persistence.VolumeName)
+        "mountPath"    (default "/data" .Values.persistence.mountPath)
+        "size"         .Values.persistence.size
+        "accessModes"  (list (default "ReadWriteOnce" .Values.persistence.accessMode))
+        "storageClass"  .Values.persistence.storageClass
+      -}}
+  {{- $pvols = append $pvols $legacy -}}
+{{- end -}}
+
 apiVersion: {{ template "simple-node.statefulset.apiVersion" . }}
 kind: StatefulSet
 metadata:
@@ -31,24 +44,36 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "simple-node.serviceAccountName" . | quote }}
       {{- if .Values.podSecurityContext }}
-      securityContext: 
+      securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       {{- end }}
+
       {{- if and .Values.config.enabled (eq .Values.config.mode "copy") }}
       initContainers:
         - name: copy-config
           image: busybox
-          command: ["sh", "-c", "cp {{ .Values.config.mountPath }} {{ .Values.config.targetPath }}"]
+          command:
+            - sh
+            - -c
+            - >
+              mkdir -p $(dirname {{ .Values.config.targetPath }}) &&
+              cp -f {{ .Values.config.mountPath | default "/tmp/bitcoin.conf" }} {{ .Values.config.targetPath }}
           volumeMounts:
-            {{- if .Values.persistence.enabled }}
-            - name: data
-              mountPath: {{ .Values.persistence.mountPath | default "/data" }}
+            {{- if and .Values.persistence.enabled $pvols }}
+            {{- range $v := $pvols }}
+            - name: {{ $v.name }}
+              mountPath: {{ $v.mountPath }}
+              {{- if $v.subPath }}
+              subPath: {{ $v.subPath }}
+              {{- end }}
+            {{- end }}
             {{- end }}
             - name: config
               mountPath: {{ .Values.config.mountPath | default "/tmp/bitcoin.conf" }}
               subPath: config
               readOnly: true
       {{- end }}
+
       containers:
         {{- if .Values.sidecarContainers }}
         {{- toYaml .Values.sidecarContainers | nindent 8 }}
@@ -58,11 +83,11 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.command }}
           command:
-            {{- toYaml .Values.command | nindent 12 }}
+{{ toYaml .Values.command | indent 12 }}
           {{- end }}
           {{- if .Values.args }}
           args:
-            {{- toYaml .Values.args | nindent 12 }}
+{{ toYaml .Values.args | indent 12 }}
           {{- end }}
           {{- if .Values.environment }}
           env:
@@ -72,7 +97,7 @@ spec:
             {{- end }}
           {{- end }}
           {{- if .Values.containerSecurityContext }}
-          securityContext: 
+          securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           {{- end }}
           ports:
@@ -82,8 +107,9 @@ spec:
               protocol: {{ .protocol | default "TCP" }}
           {{- end }}
           {{- if .Values.containerPorts }}
-            {{- toYaml .Values.containerPorts | nindent 12 }}
+{{ toYaml .Values.containerPorts | indent 12 }}
           {{- end }}
+
           {{- with .Values.probes.livenessProbe }}
           livenessProbe:
 {{ toYaml . | indent 12 }}
@@ -92,55 +118,94 @@ spec:
           readinessProbe:
 {{ toYaml . | indent 12 }}
           {{- end }}
-
           {{- with .Values.probes.startupProbe }}
           startupProbe:
 {{ toYaml . | indent 12 }}
           {{- end }}
+
           resources:
 {{ toYaml .Values.resources | indent 12 }}
+
           {{- if or .Values.persistence.enabled .Values.config.enabled }}
           volumeMounts:
-            {{- if .Values.persistence.enabled }}
-            - name: {{ .Values.persistence.VolumeName | default "data" }}
-              mountPath: {{ .Values.persistence.mountPath | default "/data" }}
+            {{- if and .Values.persistence.enabled $pvols }}
+            {{- range $v := $pvols }}
+            - name: {{ $v.name }}
+              mountPath: {{ $v.mountPath }}
+              {{- if $v.subPath }}
+              subPath: {{ $v.subPath }}
+              {{- end }}
+              {{- if $v.readOnly }}
+              readOnly: true
+              {{- end }}
+            {{- end }}
             {{- end }}
             {{- if and .Values.config.enabled (eq .Values.config.mode "mount") }}
             - name: config
               mountPath: {{ .Values.config.mountPath }}
               subPath: config
               readOnly: true
-            {{- end }}            
+            {{- end }}
           {{- end }}
-    {{- if .Values.config.enabled }}
+
+      {{- if or .Values.config.enabled (and .Values.persistence.enabled $pvols) }}
       volumes:
+        {{- if .Values.config.enabled }}
         - name: config
           configMap:
             name: {{ template "simple-node.confname" . }}
             defaultMode: 0600
-    {{- end }}
-    {{- with .Values.nodeSelector }}
+        {{- end }}
+        {{- if and .Values.persistence.enabled $pvols }}
+        {{- range $v := $pvols }}
+        {{- if $v.existingClaim }}
+        - name: {{ $v.name }}
+          persistentVolumeClaim:
+            claimName: {{ $v.existingClaim }}
+        {{- else if $v.emptyDir }}
+        - name: {{ $v.name }}
+          emptyDir: {{- toYaml $v.emptyDir | nindent 12 }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
+
+      {{- with .Values.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.affinity }}
+      {{- end }}
+      {{- with .Values.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
-    {{- end }}
-  {{- if .Values.persistence.enabled }}
+      {{- end }}
+
+  {{- if and .Values.persistence.enabled $pvols }}
   volumeClaimTemplates:
+    {{- range $v := $pvols }}
+    {{- if and (not $v.existingClaim) (not $v.emptyDir) }}
     - metadata:
-        name: {{ .Values.persistence.VolumeName | default "data" }}
+        name: {{ $v.name }}
+        {{- with $v.annotations }}
+        annotations:
+{{ toYaml . | indent 10 }}
+        {{- end }}
       spec:
-        accessModes: [ {{ $.Values.persistence.accessMode | quote }} ]
-        {{- if $.Values.persistence.storageClass }}
-        storageClassName: {{ $.Values.persistence.storageClass }}
+        accessModes:
+          {{- if $v.accessModes }}
+{{ toYaml $v.accessModes | indent 10 }}
+          {{- else }}
+          - ReadWriteOnce
+          {{- end }}
+        {{- if $v.storageClass }}
+        storageClassName: {{ $v.storageClass }}
         {{- end }}
         resources:
           requests:
-            storage: {{ $.Values.persistence.size }}
-  {{- end }} 
+            storage: {{ required (printf "persistence.volumes[%s].size is required for PVC creation" $v.name) $v.size }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
