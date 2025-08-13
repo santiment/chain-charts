@@ -179,6 +179,22 @@ entries:
   simple-node:
   - apiVersion: v1
     appVersion: master
+    created: "2025-08-13T10:05:36.913150583Z"
+    description: Helm chart for simple node
+    digest: a16efd5221f9336f9709f973a947339d43d5aafb9594fd5f0a387e67d0cd2d83
+    keywords:
+    - Bitcoin
+    - Litecoin
+    - Dogecoin
+    - blockchain
+    maintainers:
+    - name: Ivan Genev
+    name: simple-node
+    urls:
+    - https://github.com/santiment/chain-charts/releases/download/simple-node-0.1.0/simple-node-0.1.0.tgz
+    version: 0.1.0
+  - apiVersion: v1
+    appVersion: master
     created: "2025-06-24T14:17:28.14550261Z"
     description: Helm chart for simple node
     digest: 852db33e0ee58977fc3e9be55e533e5b63c920416e0bda7bc8daad44d0702570
@@ -225,4 +241,4 @@ entries:
     urls:
     - https://github.com/santiment/chain-charts/releases/download/simple-node-0.0.1/simple-node-0.0.1.tgz
     version: 0.0.1
-generated: "2025-06-24T14:17:28.145533969Z"
+generated: "2025-08-13T10:05:36.913189656Z"
