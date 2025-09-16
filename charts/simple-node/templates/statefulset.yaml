@@ -91,10 +91,17 @@ spec:
           {{- end }}
           {{- if .Values.environment }}
           env:
-            {{- range $key, $val := .Values.environment }}
-            - name: {{ $key }}
-              value: {{ $val | quote }}
-            {{- end }}
+          {{- range $name, $v := .Values.environment }}
+            - name: {{ $name }}
+              {{- if kindIs "map" $v }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ required (printf "environment.%s.secretName is required" $name) $v.secretName }}
+                  key:  {{ required (printf "environment.%s.key is required" $name) $v.key }}
+              {{- else }}
+              value: {{ $v | quote }}
+              {{- end }}
+          {{- end }}
           {{- end }}
           {{- if .Values.containerSecurityContext }}
           securityContext:
