@@ -133,7 +133,7 @@ spec:
           resources:
 {{ toYaml .Values.resources | indent 12 }}
 
-          {{- if or .Values.persistence.enabled .Values.config.enabled }}
+          {{- if or .Values.persistence.enabled .Values.config.enabled .Values.extraVolumeMounts }}
           volumeMounts:
             {{- if and .Values.persistence.enabled $pvols }}
             {{- range $v := $pvols }}
@@ -153,9 +153,12 @@ spec:
               subPath: config
               readOnly: true
             {{- end }}
+            {{- if .Values.extraVolumeMounts }}
+            {{- toYaml .Values.extraVolumeMounts | nindent 12 }}
+            {{- end }}
           {{- end }}
 
-      {{- if or .Values.config.enabled (and .Values.persistence.enabled $pvols) }}
+      {{- if or .Values.config.enabled (and .Values.persistence.enabled $pvols) .Values.extraVolumes }}
       volumes:
         {{- if .Values.config.enabled }}
         - name: config
@@ -175,8 +178,14 @@ spec:
         {{- end }}
         {{- end }}
         {{- end }}
+        {{- if .Values.extraVolumes }}
+        {{- toYaml .Values.extraVolumes | nindent 8 }}
+        {{- end }}
       {{- end }}
 
+      {{- if .Values.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
