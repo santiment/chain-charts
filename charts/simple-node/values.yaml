@@ -80,6 +80,22 @@ service:
       port: 8332
       targetPort: 8332
 
+# Prometheus Operator ServiceMonitor (requires the CRD)
+serviceMonitor:
+  enabled: false
+  # Namespace for the ServiceMonitor resource (defaults to release namespace)
+  namespace: ""
+  # Port name from service.ports to scrape
+  port: rpc
+  path: /metrics
+  scheme: http
+  interval: 30s
+  scrapeTimeout: 10s
+  # Extra labels for Prometheus Operator discovery (e.g. prometheus: main)
+  labels: {}
+  metricRelabelings: []
+  relabelings: []
+
 # Container ports configuration
 containerPorts: {}
 
