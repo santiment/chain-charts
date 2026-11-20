@@ -81,3 +81,17 @@ Determine config name for statefulset.
 {{- printf "%s-%s" (include "simple-node.fullname" .) "config" | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Traefik Middleware resource name (metadata.name).
+*/}}
+{{- define "simple-node.middleware.name" -}}
+{{- default "basic-auth" .Values.ingress.middleware.name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Traefik ingress annotation value: <namespace>-<middleware>@kubernetescrd
+*/}}
+{{- define "simple-node.middleware.ingressRef" -}}
+{{- printf "%s-%s@kubernetescrd" .Release.Namespace (include "simple-node.middleware.name" .) -}}
+{{- end -}}

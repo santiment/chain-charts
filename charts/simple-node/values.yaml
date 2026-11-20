@@ -121,11 +121,32 @@ ingress:
   enabled: false
   ingressClassName: "nginx"
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     kubernetes.io/tls-acme: 'true'
   host: simple-node.example.org
+  # Single-path ingress (default). When paths is non-empty, path/pathType/servicePortName are ignored.
   path: /
   pathType: Prefix
+  servicePortName: rpc
+  # Multi-path ingress (optional), e.g. API sidecar + node RPC on one host:
+  # paths:
+  #   - path: /hypercore
+  #     pathType: Prefix
+  #     servicePortName: http-api
+  #   - path: /health
+  #     pathType: Exact
+  #     servicePortName: http-api
+  #   - path: /
+  #     pathType: Prefix
+  #     servicePortName: http-rpc
+  paths: []
+  # Optional Traefik Middleware (basicAuth). Creates Middleware CRD and wires ingress annotation.
+  middleware:
+    enabled: false
+    name: basic-auth
+    annotations: {}
+    basicAuth:
+      secret: ""
+      realm: ""
   tls: true
   tlsSecretName: simple-node-tls
 

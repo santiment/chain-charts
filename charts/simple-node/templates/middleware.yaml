@@ -1,0 +1,19 @@
+{{- if and .Values.ingress.enabled .Values.ingress.middleware.enabled .Values.ingress.middleware.basicAuth.secret }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "simple-node.middleware.name" . }}
+  labels:
+    {{- include "simple-node.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    {{- with .Values.ingress.middleware.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  basicAuth:
+    secret: {{ .Values.ingress.middleware.basicAuth.secret }}
+    {{- with .Values.ingress.middleware.basicAuth.realm }}
+    realm: {{ . | quote }}
+    {{- end }}
+{{- end }}

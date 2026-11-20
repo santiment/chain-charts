@@ -6,7 +6,14 @@ metadata:
   labels:
     {{- include "simple-node.labels" . | nindent 4 }}
   annotations:
-    {{- with .Values.ingress.annotations }}
+    {{- $annotations := dict }}
+    {{- if .Values.ingress.annotations }}
+    {{- $annotations = merge $annotations .Values.ingress.annotations }}
+    {{- end }}
+    {{- if and .Values.ingress.middleware.enabled .Values.ingress.middleware.basicAuth.secret (not (hasKey $annotations "traefik.ingress.kubernetes.io/router.middlewares")) }}
+    {{- $_ := set $annotations "traefik.ingress.kubernetes.io/router.middlewares" (include "simple-node.middleware.ingressRef" .) }}
+    {{- end }}
+    {{- with $annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
@@ -17,6 +24,17 @@ spec:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
+          {{- if .Values.ingress.paths }}
+          {{- range .Values.ingress.paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType | default "Prefix" }}
+            backend:
+              service:
+                name: {{ include "simple-node.fullname" $ }}
+                port:
+                  name: {{ .servicePortName }}
+          {{- end }}
+          {{- else }}
           - path: {{ .Values.ingress.path }}
             pathType: {{ .Values.ingress.pathType | default "Prefix" }}
             backend:
@@ -24,6 +42,7 @@ spec:
                 name: {{ include "simple-node.fullname" . }}
                 port:
                   name: {{ .Values.ingress.servicePortName | default "rpc" }}
+          {{- end }}
   {{- if .Values.ingress.tls }}
   tls:
     - hosts:

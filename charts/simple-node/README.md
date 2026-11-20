@@ -72,6 +72,8 @@ The following table lists the main configurable parameters and their default val
 | `args`                      | Container args override                                                           | `[]`                          |
 | `ingress.enabled`           | Enable ingress                                                                    | `false`                       |
 | `ingress.host`              | Ingress host                                                                      | `simple-node.example.com`     |
+| `ingress.paths`             | Optional multi-path rules (`path`, `pathType`, `servicePortName`); if set, `path` / `servicePortName` singles are ignored | `[]` |
+| `ingress.middleware`        | Traefik `Middleware` basicAuth (`enabled`, `name`, `basicAuth.secret` / `realm`); sets ingress middleware annotation when not overridden | `enabled: false` |
 
 For full configurable options, see [values.yaml](./values.yaml).
 
